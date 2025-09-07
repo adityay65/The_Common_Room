@@ -23,7 +23,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(user.imageUrl);
-  console.log('User data in NavbarClient:', user);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -211,7 +210,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
                   </div>
                   
                   <ul className="py-2">
-                    <li><a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Update Profile</a></li>
+                    <li><a href="/dashboard/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Update Profile</a></li>
                     <li><a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Blogs</a></li>
                   </ul>
                   
