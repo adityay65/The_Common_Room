@@ -25,7 +25,7 @@ async function getUserData() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey123") as { id: number };
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true, imageUrl: true } // Fetch imageUrl from DB
     });
     return user;
   } catch (error) {

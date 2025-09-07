@@ -11,25 +11,28 @@ datasource db {
 }
 
 // User model for authentication
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String   // We will store a hashed password, not the plain text one
-  posts     Post[]   // A user can have many posts
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+  model User {
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    name      String
+    password  String
+    imageUrl  String?
+    bio       String?
+    hobbies   String?
+    posts     Post[] // 👈 Add this line (one-to-many relation with Post)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+  }
 
 // Post model for blog articles
 model Post {
-  id          Int      @id @default(autoincrement())
-  title       String
-  content     String   @db.Text
-  imageUrl    String?
-  published   Boolean  @default(false)
-  author      User     @relation(fields: [authorId], references: [id])
-  authorId    Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  imageUrl  String?
+  published Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
