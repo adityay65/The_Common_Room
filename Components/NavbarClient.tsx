@@ -211,9 +211,8 @@ export default function NavbarClient({ user }: { user: UserData }) {
                   
                   <ul className="py-2">
                     <li><a href="/dashboard/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Update Profile</a></li>
-                    <li><a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Blogs</a></li>
+                    <li><a href="/dashboard/my-blog" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Blogs</a></li>
                   </ul>
-                  
                   <div className="border-t border-gray-200">
                     <a href="/api/auth/signout" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
                   </div>
