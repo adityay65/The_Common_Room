@@ -1,7 +1,7 @@
-'use client'; // This directive marks the file as a Client Component
+"use client"; // This directive marks the file as a Client Component
 
-import { useState, useEffect, useRef } from 'react';
-import { Search, Camera, Upload } from 'lucide-react'; // Import icons
+import { useState, useEffect, useRef } from "react";
+import { Search, Camera, Upload } from "lucide-react"; // Import icons
 
 // Define the User type - updated to use imageUrl from Cloudinary
 type UserData = {
@@ -12,10 +12,10 @@ type UserData = {
 };
 
 // Helper function for initials
-function getInitials(name: string = ''): string {
-  if (!name) return '';
-  const names = name.split(' ');
-  const initials = names.map(n => n[0]).join('');
+function getInitials(name: string = ""): string {
+  if (!name) return "";
+  const names = name.split(" ");
+  const initials = names.map((n) => n[0]).join("");
   return initials.slice(0, 2).toUpperCase();
 }
 
@@ -25,10 +25,13 @@ export default function NavbarClient({ user }: { user: UserData }) {
   const [currentImageUrl, setCurrentImageUrl] = useState(user.imageUrl);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     }
@@ -39,23 +42,25 @@ export default function NavbarClient({ user }: { user: UserData }) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDropdownOpen]);
-  
+
   const userInitials = getInitials(user.name ?? undefined);
 
   // Handle file upload
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      alert("File size must be less than 5MB");
       return;
     }
 
@@ -63,11 +68,11 @@ export default function NavbarClient({ user }: { user: UserData }) {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', user.id.toString());
+      formData.append("file", file);
+      formData.append("userId", user.id.toString());
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
+      const response = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
@@ -78,16 +83,16 @@ export default function NavbarClient({ user }: { user: UserData }) {
         // Optionally refresh the page or update the user context
         // window.location.reload(); // Uncomment if you want to refresh the page
       } else {
-        alert('Upload failed: ' + result.error);
+        alert("Upload failed: " + result.error);
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Upload failed. Please try again.');
+      console.error("Upload error:", error);
+      alert("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
       // Reset the file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -98,12 +103,18 @@ export default function NavbarClient({ user }: { user: UserData }) {
   };
 
   // Profile Image Component
-  const ProfileImage = ({ size = "w-10 h-10", clickable = false }: { size?: string; clickable?: boolean }) => {
+  const ProfileImage = ({
+    size = "w-10 h-10",
+    clickable = false,
+  }: {
+    size?: string;
+    clickable?: boolean;
+  }) => {
     const imageContent = currentImageUrl ? (
-      <img 
-        src={currentImageUrl} 
-        alt="Profile" 
-        className="w-full h-full object-cover rounded-full" 
+      <img
+        src={currentImageUrl}
+        alt="Profile"
+        className="w-full h-full object-cover rounded-full"
       />
     ) : (
       <div className="w-full h-full bg-blue-500 text-white flex items-center justify-center font-bold text-xl rounded-full">
@@ -117,7 +128,9 @@ export default function NavbarClient({ user }: { user: UserData }) {
           onClick={triggerFileUpload}
           disabled={isUploading}
           className={`${size} rounded-full relative group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-            isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-75'
+            isUploading
+              ? "opacity-50 cursor-not-allowed"
+              : "cursor-pointer hover:opacity-75"
           }`}
         >
           {imageContent}
@@ -151,43 +164,52 @@ export default function NavbarClient({ user }: { user: UserData }) {
         onChange={handleImageUpload}
         className="hidden"
       />
-      
+
       <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-20">
         <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-blue-600">The Common Room</h1>
+              <h1 className="text-2xl font-bold text-blue-600">
+                The Common Room
+              </h1>
             </div>
-            
+
             {/* Search bar */}
             <div className="hidden md:block relative flex-1 max-w-md mx-4">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="w-5 h-5 text-gray-400" />
               </div>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search posts..."
                 className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-100 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               />
             </div>
-            
+
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setDropdownOpen(!isDropdownOpen)}
                 className="w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden"
               >
                 <ProfileImage />
               </button>
-              
+
               {isDropdownOpen && (
-                <div ref={dropdownRef} className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-50 overflow-hidden">
+                <div
+                  ref={dropdownRef}
+                  className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-50 overflow-hidden"
+                >
                   {/* User info section with clickable profile image */}
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center space-x-3">
                       <ProfileImage size="w-12 h-12" clickable={true} />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-800 truncate">{user.name}</p>
-                        <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                        <p className="font-semibold text-gray-800 truncate">
+                          {user.name}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
                     <button
@@ -208,13 +230,32 @@ export default function NavbarClient({ user }: { user: UserData }) {
                       )}
                     </button>
                   </div>
-                  
+
                   <ul className="py-2">
-                    <li><a href="/dashboard/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Update Profile</a></li>
-                    <li><a href="/dashboard/my-blog" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Blogs</a></li>
+                    <li>
+                      <a
+                        href="/dashboard/profile"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Update Profile
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="/dashboard/my-blog"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        My Blogs
+                      </a>
+                    </li>
                   </ul>
                   <div className="border-t border-gray-200">
-                    <a href="/api/auth/signout" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                    <a
+                      href="/api/auth/signout"
+                      className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </a>
                   </div>
                 </div>
               )}

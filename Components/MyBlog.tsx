@@ -1,22 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { MoreVertical, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import {
+  MoreVertical,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
+// The Post type is correct and already supports the author's image
 type Post = {
   id: number;
   title: string;
-  author: { name: string | null };
-  authorImage: string;
-  content: string;
-  imageUrl: string | null;
+  published: boolean;
+  author: { name: string | null; image?: string | null };
+  previewContent: string;
+  coverImageUrl: string | null;
   createdAt: Date;
 };
 
 interface MyBlogCardProps {
   post: Post;
-  onPostDeleted: () => void; // callback to parent
+  onPostDeleted: () => void;
 }
 
 export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
@@ -26,19 +34,21 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const postImageUrl =
-    post.imageUrl || 'https://placehold.co/600x400/cccccc/FFFFFF?text=Post+Image';
+    post.coverImageUrl ||
+    "https://placehold.co/600x400/E2E8F0/4A5568?text=Blog";
 
-  // Close menu when clicking outside
+  // This hook for closing the menu is fine, no changes needed.
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuRef]);
 
+  // All event handlers for delete functionality are fine, no changes needed.
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -50,17 +60,17 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/posts/${post.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        alert('Failed to delete the post. Please try again.');
+        alert("Failed to delete the post. Please try again.");
       } else {
-        onPostDeleted(); // notify parent
+        onPostDeleted();
       }
     } catch (error) {
-      console.error('Deletion error:', error);
-      alert('An error occurred while deleting the post.');
+      console.error("Deletion error:", error);
+      alert("An error occurred while deleting the post.");
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -69,7 +79,23 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 h-full flex flex-col">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 h-full flex flex-col relative">
+        {/* Status Badge */}
+        <div
+          className={`absolute top-3 right-3 text-xs font-bold px-2 py-1 rounded-full flex items-center ${
+            post.published
+              ? "bg-green-100 text-green-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {post.published ? (
+            <Eye size={12} className="mr-1" />
+          ) : (
+            <EyeOff size={12} className="mr-1" />
+          )}
+          {post.published ? "Published" : "Draft"}
+        </div>
+
         {/* Main Card Content */}
         <Link href={`/posts/${post.id}`} className="block flex-grow">
           <img
@@ -81,9 +107,11 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
             <p className="text-sm text-gray-500 mb-2">
               {new Date(post.createdAt).toLocaleDateString()}
             </p>
-            <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">{post.title}</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
+              {post.title}
+            </h3>
             <p className="text-gray-600 text-base min-h-[5rem] overflow-hidden">
-              {post.content}
+              {post.previewContent}
             </p>
           </div>
         </Link>
@@ -91,10 +119,28 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
         {/* Footer with author + menu */}
         <div className="border-t border-gray-100 p-6 pt-4 mt-auto flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full mr-3 bg-blue-500 text-white flex items-center justify-center font-bold">
-              {post.authorImage}
-            </div>
-            <span className="text-gray-800 font-semibold">{post.author.name}</span>
+            {/* ✅ UPDATED: Conditionally render image or initials */}
+            {post.author.image ? (
+              <img
+                src={post.author.image}
+                alt={post.author.name || "Author"}
+                className="w-10 h-10 rounded-full mr-3 object-cover bg-gray-200"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full mr-3 bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
+                {post.author.name
+                  ? post.author.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()
+                  : ""}
+              </div>
+            )}
+            <span className="text-gray-800 font-semibold">
+              {post.author.name}
+            </span>
           </div>
 
           <div ref={menuRef} className="relative">
@@ -131,44 +177,49 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
         </div>
       </div>
 
-      {/* Delete Modal */}
+      {/* Delete Modal (No changes needed here) */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-gray-200/40 backdrop-blur-sm shadow-inner"
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={() => setIsDeleteModalOpen(false)}
           />
           <div
-            className="relative bg-white rounded-2xl p-6 shadow-2xl w-full max-w-md"
+            className="relative bg-white rounded-lg p-6 shadow-xl w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle
+                  className="h-6 w-6 text-red-600"
+                  aria-hidden="true"
+                />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">Delete Post</h3>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                Delete Post
+              </h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete this post? This action cannot
+                  be undone.
+                </p>
+              </div>
             </div>
-            <div className="mt-4">
-              <p className="text-sm text-gray-600">
-                Are you sure you want to delete this post? <br />
-                <span className="text-red-500 font-medium">This action cannot be undone.</span>
-              </p>
-            </div>
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={confirmDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold shadow-md hover:bg-red-700 transition disabled:opacity-50"
+                className="w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:opacity-50"
               >
-                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              >
+                Cancel
               </button>
             </div>
           </div>

@@ -1,13 +1,15 @@
-'use client'; // This page needs to be a client component to handle state for deletion
+// /app/my-blog/page.tsx (or similar path)
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import NavbarClient from '@/Components/NavbarClient';
-import MyBlogCard from '@/Components/MyBlog';
-import { PlusCircle } from 'lucide-react';
-import Link from 'next/link';
+"use client";
 
-// Define the types for User and Post
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import NavbarClient from "@/Components/NavbarClient";
+import MyBlogCard from "@/Components/MyBlog";
+import { PlusCircle } from "lucide-react";
+import Link from "next/link";
+
+// Define the types for User and the Post (as shaped by our API)
 type User = {
   id: number;
   name: string | null;
@@ -15,23 +17,16 @@ type User = {
   imageUrl: string | null;
 };
 
+// ✅ UPDATED Post type to match the API response
 type Post = {
   id: number;
   title: string;
+  published: boolean;
   author: { name: string | null };
-  authorImage: string;
-  content: string;
-  imageUrl: string | null;
+  previewContent: string; // Using preview from the API
+  coverImageUrl: string | null; // Using the correct field name
   createdAt: Date;
 };
-
-// Helper function for initials
-function getInitials(name: string = ''): string {
-  if (!name) return '';
-  const names = name.split(' ');
-  const initials = names.map(n => n[0]).join('');
-  return initials.slice(0, 2).toUpperCase();
-}
 
 export default function MyBlogPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -43,28 +38,26 @@ export default function MyBlogPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch user data
-        const userRes = await fetch('/api/user/me');
+        // Fetch user data (no changes here)
+        const userRes = await fetch("/api/user/me");
         if (!userRes.ok) {
-          router.push('/signin');
+          router.push("/signin");
           return;
         }
         const userData = await userRes.json();
         setUser(userData);
 
-        // Fetch posts
-        const postsRes = await fetch('/api/my-blogs');
-        if (!postsRes.ok) throw new Error('Failed to fetch posts');
+        // Fetch posts from our updated API
+        const postsRes = await fetch("/api/my-blogs");
+        if (!postsRes.ok) throw new Error("Failed to fetch posts");
         const userPosts = await postsRes.json();
 
-        const processedPosts = userPosts.map((post: any) => ({
-          ...post,
-          authorImage: getInitials(post.author.name ?? ''),
-        }));
-
-        setPosts(processedPosts);
+        // ✅ SIMPLIFIED: No need for client-side mapping anymore.
+        // The API now returns the data in the exact shape we need.
+        setPosts(userPosts);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.error("Failed to fetch data:", error);
+        // Optionally, set an error state here to show a message to the user
       } finally {
         setIsLoading(false);
       }
@@ -76,7 +69,12 @@ export default function MyBlogPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <p className="text-xl text-gray-600">Loading your posts...</p>
+        <div className="text-center">
+          <p className="text-xl font-semibold text-gray-700">
+            Loading Your Posts...
+          </p>
+          <p className="text-gray-500">Just a moment!</p>
+        </div>
       </div>
     );
   }
@@ -90,7 +88,7 @@ export default function MyBlogPage() {
           <h2 className="text-3xl font-bold text-gray-800">My Blog Posts</h2>
           <Link
             href="/create-post"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300"
           >
             <PlusCircle size={20} className="mr-2" />
             Create New Post
@@ -99,20 +97,28 @@ export default function MyBlogPage() {
 
         {posts.length > 0 ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {posts.map(post => (
+            {posts.map((post) => (
               <MyBlogCard
                 key={post.id}
                 post={post}
+                // The onPostDeleted callback tells the UI to remove the card immediately
+                // without needing to re-fetch the whole list.
                 onPostDeleted={() =>
-                  setPosts(currentPosts => currentPosts.filter(p => p.id !== post.id))
+                  setPosts((currentPosts) =>
+                    currentPosts.filter((p) => p.id !== post.id)
+                  )
                 }
               />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-xl text-gray-500">You haven't created any posts yet.</p>
-            <p className="text-gray-400 mt-2">Click "Create New Post" to get started!</p>
+          <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg bg-white">
+            <p className="text-xl font-semibold text-gray-600">
+              You haven't created any posts yet.
+            </p>
+            <p className="text-gray-500 mt-2">
+              Click "Create New Post" to share your thoughts!
+            </p>
           </div>
         )}
       </main>
