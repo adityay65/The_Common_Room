@@ -1,5 +1,3 @@
-// /app/my-blog/page.tsx (or similar path)
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,6 +6,7 @@ import NavbarClient from "@/Components/NavbarClient";
 import MyBlogCard from "@/Components/MyBlog";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+import Footer from "@/Components/footer";
 
 // Define the types for User and the Post (as shaped by our API)
 type User = {
@@ -17,14 +16,13 @@ type User = {
   imageUrl: string | null;
 };
 
-// ✅ UPDATED Post type to match the API response
 type Post = {
   id: number;
   title: string;
   published: boolean;
   author: { name: string | null };
-  previewContent: string; // Using preview from the API
-  coverImageUrl: string | null; // Using the correct field name
+  previewContent: string;
+  coverImageUrl: string | null;
   createdAt: Date;
 };
 
@@ -38,7 +36,7 @@ export default function MyBlogPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch user data (no changes here)
+        // Fetch user data
         const userRes = await fetch("/api/user/me");
         if (!userRes.ok) {
           router.push("/signin");
@@ -47,17 +45,13 @@ export default function MyBlogPage() {
         const userData = await userRes.json();
         setUser(userData);
 
-        // Fetch posts from our updated API
+        // Fetch posts from our API
         const postsRes = await fetch("/api/my-blogs");
         if (!postsRes.ok) throw new Error("Failed to fetch posts");
         const userPosts = await postsRes.json();
-
-        // ✅ SIMPLIFIED: No need for client-side mapping anymore.
-        // The API now returns the data in the exact shape we need.
         setPosts(userPosts);
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        // Optionally, set an error state here to show a message to the user
       } finally {
         setIsLoading(false);
       }
@@ -68,27 +62,29 @@ export default function MyBlogPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <div className="text-center">
-          <p className="text-xl font-semibold text-gray-700">
+          <p className="text-xl font-semibold text-slate-700">
             Loading Your Posts...
           </p>
-          <p className="text-gray-500">Just a moment!</p>
+          <p className="text-slate-500">Just a moment!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans">
+    // --- Edit: Added flex flex-col to make the footer stick to the bottom ---
+    <div className="bg-slate-50 min-h-screen font-sans flex flex-col">
       {user && <NavbarClient user={user} />}
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">My Blog Posts</h2>
+      {/* --- Edit: Added flex-grow to make the main content fill the space --- */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full">
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">My Blog Posts</h2>
           <Link
             href="/write"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300"
+            className="inline-flex items-center px-5 py-2.5 bg-slate-800 text-white font-semibold rounded-lg shadow-md hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-700 transition-colors duration-300"
           >
             <PlusCircle size={20} className="mr-2" />
             Create New Post
@@ -101,8 +97,6 @@ export default function MyBlogPage() {
               <MyBlogCard
                 key={post.id}
                 post={post}
-                // The onPostDeleted callback tells the UI to remove the card immediately
-                // without needing to re-fetch the whole list.
                 onPostDeleted={() =>
                   setPosts((currentPosts) =>
                     currentPosts.filter((p) => p.id !== post.id)
@@ -112,16 +106,17 @@ export default function MyBlogPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg bg-white">
-            <p className="text-xl font-semibold text-gray-600">
+          <div className="text-center py-20 border-2 border-dashed border-slate-300 rounded-lg bg-white mt-8">
+            <p className="text-xl font-semibold text-slate-600">
               You haven&apos;t created any posts yet.
             </p>
-            <p className="text-gray-500 mt-2">
+            <p className="text-slate-500 mt-2">
               Click &quot;Create New Post&quot; to share your thoughts!
             </p>
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

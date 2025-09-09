@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image"; // --- Edit: Imported Next.js Image component
 import {
   MoreVertical,
   Edit,
@@ -27,6 +28,16 @@ interface MyBlogCardProps {
   onPostDeleted: () => void;
 }
 
+// --- Edit: Added formatDate helper for consistency ---
+const formatDate = (date: Date): string => {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+
 export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -36,6 +47,10 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
   const postImageUrl =
     post.coverImageUrl ||
     "https://placehold.co/600x400/E2E8F0/4A5568?text=Blog";
+
+  const authorName = post.author.name || "Anonymous";
+  const authorInitials = authorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const isAuthorUrl = post.author.image && post.author.image.startsWith('http');
 
   // This hook for closing the menu is fine, no changes needed.
   useEffect(() => {
@@ -79,68 +94,69 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 h-full flex flex-col relative">
+      {/* --- UI Refresh: Main card container with consistent styling --- */}
+      <article className="h-full bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col relative">
         {/* Status Badge */}
         <div
-          className={`absolute top-3 right-3 text-xs font-bold px-2 py-1 rounded-full flex items-center ${
+          className={`absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full flex items-center z-10 ${
             post.published
               ? "bg-green-100 text-green-800"
               : "bg-yellow-100 text-yellow-800"
           }`}
         >
           {post.published ? (
-            <Eye size={12} className="mr-1" />
+            <Eye size={12} className="mr-1.5" />
           ) : (
-            <EyeOff size={12} className="mr-1" />
+            <EyeOff size={12} className="mr-1.5" />
           )}
           {post.published ? "Published" : "Draft"}
         </div>
 
-        {/* Main Card Content */}
-        <Link href={`/posts/${post.id}`} className="block flex-grow">
-          <img
-            className="h-48 w-full object-cover"
-            src={postImageUrl}
-            alt={`Image for ${post.title}`}
-          />
-          <div className="p-6">
-            <p className="text-sm text-gray-500 mb-2">
-              {new Date(post.createdAt).toLocaleDateString()}
-            </p>
-            <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
+        {/* --- Edit: Link now wraps only the content, not the footer --- */}
+        <Link href={`/posts/${post.id}`} className="group block flex-grow flex flex-col">
+          {/* Post Cover Image */}
+          <div className="relative aspect-video overflow-hidden rounded-t-xl bg-slate-200">
+            <Image
+              src={postImageUrl}
+              alt={`Cover image for ${post.title}`}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              unoptimized={true}
+            />
+          </div>
+
+          {/* Post Content */}
+          <div className="p-6 flex flex-col flex-grow">
+            <h3 className="text-xl font-bold font-serif text-slate-800 group-hover:text-slate-950 transition-colors">
               {post.title}
             </h3>
-            <p className="text-gray-600 text-base min-h-[5rem] overflow-hidden">
+            <p className="mt-3 text-slate-600 text-sm leading-relaxed flex-grow">
               {post.previewContent}
             </p>
           </div>
         </Link>
 
         {/* Footer with author + menu */}
-        <div className="border-t border-gray-100 p-6 pt-4 mt-auto flex items-center justify-between">
-          <div className="flex items-center">
-            {/* ✅ UPDATED: Conditionally render image or initials */}
-            {post.author.image ? (
-              <img
-                src={post.author.image}
-                alt={post.author.name || "Author"}
-                className="w-10 h-10 rounded-full mr-3 object-cover bg-gray-200"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full mr-3 bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
-                {post.author.name
-                  ? post.author.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()
-                  : ""}
-              </div>
-            )}
-            <span className="text-gray-800 font-semibold">
-              {post.author.name}
-            </span>
+        <footer className="mt-auto p-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
+          <div className="flex items-center gap-x-3">
+             {isAuthorUrl ? (
+                <Image
+                  src={post.author.image!}
+                  alt={authorName}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 bg-slate-700 text-white flex items-center justify-center rounded-full font-semibold text-sm">
+                  {authorInitials}
+                </div>
+              )}
+            <div>
+              <p className="font-semibold text-sm text-slate-700">{authorName}</p>
+              <p className="text-xs text-slate-500">{formatDate(post.createdAt)}</p>
+            </div>
           </div>
 
           <div ref={menuRef} className="relative">
@@ -150,7 +166,7 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);
               }}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-500 focus:outline-none"
+              className="p-2 rounded-full hover:bg-slate-100 text-slate-500 focus:outline-none"
             >
               <MoreVertical size={20} />
             </button>
@@ -159,7 +175,7 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
               <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10">
                 <Link
                   href={`/edit-post/${post.id}`}
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
                 >
                   <Edit className="mr-3" size={16} />
                   <span>Edit Post</span>
@@ -174,8 +190,8 @@ export default function MyBlogCard({ post, onPostDeleted }: MyBlogCardProps) {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </footer>
+      </article>
 
       {/* Delete Modal (No changes needed here) */}
       {isDeleteModalOpen && (
