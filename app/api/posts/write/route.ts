@@ -58,14 +58,14 @@ export async function POST(req: Request) {
 
     // Filter out IMAGE blocks without uploaded URL
     const validBlocks = blocks.filter(
-      (b: any) =>
+      (b) =>
         b.type !== BlockType.IMAGE ||
         (b.type === BlockType.IMAGE && b.data?.url)
     );
 
     // Show which blocks were filtered out
     const filteredOut = blocks.filter(
-      (b: any) => b.type === BlockType.IMAGE && !b.data?.url
+      (b) => b.type === BlockType.IMAGE && !b.data?.url
     );
 
     if (validBlocks.length !== blocks.length) {
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     });
 
     // 🔍 DEBUG: Log what we're about to insert
-    const blocksToInsert = validBlocks.map((block: any, index: number) => ({
+    const blocksToInsert = validBlocks.map((block, index: number) => ({
       order: index + 1,
       type: block.type,
       data: block.data,

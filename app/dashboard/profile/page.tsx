@@ -1,13 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import {
-  Lock,
-  Save,
-  User as UserIcon,
-  BookOpen,
-  Smile,
-} from "lucide-react";
+import { Lock, Save, User as UserIcon, BookOpen, Smile } from "lucide-react";
 import { useNotification } from "@/context/NotificationContext";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 
@@ -63,7 +57,7 @@ const ProfileImage = ({
 export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
+  const [, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { notify } = useNotification();
