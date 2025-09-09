@@ -1,13 +1,15 @@
-"use client"; // This directive marks the file as a Client Component
+"use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Camera, Upload } from "lucide-react"; // Import icons
-// Define the User type - updated to use imageUrl from Cloudinary
+import { useRouter } from "next/navigation"; // ADDED: For navigation in Next.js
+import { Search, Camera, Upload } from "lucide-react";
+
+// Define the User type
 type UserData = {
   id: number;
   name: string | null;
   email: string | null;
-  imageUrl?: string | null; // This will be the Cloudinary URL
+  imageUrl?: string | null;
 };
 
 // Helper function for initials
@@ -24,6 +26,11 @@ export default function NavbarClient({ user }: { user: UserData }) {
   const [currentImageUrl, setCurrentImageUrl] = useState(user.imageUrl);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- ADDED FOR SEARCH ---
+  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+  // --- END OF ADDITIONS ---
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -44,43 +51,33 @@ export default function NavbarClient({ user }: { user: UserData }) {
 
   const userInitials = getInitials(user.name ?? undefined);
 
-  // Handle file upload
+  // Handle file upload (Your existing function - unchanged)
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    // ... your existing code ...
     const file = event.target.files?.[0];
     if (!file) return;
-
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       alert("Please select an image file");
       return;
     }
-
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("File size must be less than 5MB");
       return;
     }
-
     setIsUploading(true);
-
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("userId", user.id.toString());
-
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
-
       if (result.success) {
         setCurrentImageUrl(result.imageUrl);
-        // Optionally refresh the page or update the user context
-        // window.location.reload(); // Uncomment if you want to refresh the page
       } else {
         alert("Upload failed: " + result.error);
       }
@@ -89,19 +86,25 @@ export default function NavbarClient({ user }: { user: UserData }) {
       alert("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
-      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }
   };
 
-  // Trigger file input click
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
 
-  // Profile Image Component
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Prevent page reload
+    if (searchTerm.trim()) {
+      router.push(`/dashboard?search=${searchTerm}`);
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
   const ProfileImage = ({
     size = "w-10 h-10",
     clickable = false,
@@ -109,6 +112,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
     size?: string;
     clickable?: boolean;
   }) => {
+    // ... your existing code ...
     const imageContent = currentImageUrl ? (
       <img
         src={currentImageUrl}
@@ -120,7 +124,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
         {userInitials}
       </div>
     );
-
     if (clickable) {
       return (
         <button
@@ -133,7 +136,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
           }`}
         >
           {imageContent}
-          {/* Upload overlay */}
           <div className="absolute inset-0  bg-opacity-50 group-hover:bg-opacity-50 flex items-center justify-center transition-all duration-200 rounded-full">
             <Camera className="w-4 h-4 text-black opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           </div>
@@ -145,7 +147,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
         </button>
       );
     }
-
     return (
       <div className={`${size} rounded-full overflow-hidden`}>
         {imageContent}
@@ -155,7 +156,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
 
   return (
     <>
-      {/* Hidden file input */}
+      {/* Hidden file input (Your existing element - unchanged) */}
       <input
         ref={fileInputRef}
         type="file"
@@ -173,18 +174,25 @@ export default function NavbarClient({ user }: { user: UserData }) {
               </h1>
             </div>
 
-            {/* Search bar */}
-            <div className="hidden md:block relative flex-1 max-w-md mx-4">
+            {/* --- MODIFIED SEARCH BAR --- */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden md:block relative flex-1 max-w-md mx-4"
+            >
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="w-5 h-5 text-gray-400" />
               </div>
               <input
                 type="text"
-                placeholder="Search posts..."
+                placeholder="Search Title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-100 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               />
-            </div>
+            </form>
+            {/* --- END OF MODIFICATIONS --- */}
 
+            {/* Profile dropdown (Your existing elements - unchanged) */}
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!isDropdownOpen)}
@@ -198,7 +206,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
                   ref={dropdownRef}
                   className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-50 overflow-hidden"
                 >
-                  {/* User info section with clickable profile image */}
+                  {/* ... your existing dropdown menu code ... */}
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center space-x-3">
                       <ProfileImage size="w-12 h-12" clickable={true} />
@@ -229,7 +237,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
                       )}
                     </button>
                   </div>
-
                   <ul className="py-2">
                     <li>
                       <a
