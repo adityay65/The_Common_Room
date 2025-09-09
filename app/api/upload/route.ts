@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import cloudinary from '@/lib/cloudinary'
 import prisma from '@/lib/prisma'
 
+
 export async function POST(request: Request) {
   try {
     console.log('Upload request received')
@@ -90,5 +91,5 @@ export async function POST(request: Request) {
   } catch (err: any) {
     console.error('Upload error:', err)
     return NextResponse.json({ error: 'Upload failed: ' + err.message }, { status: 500 })
-  }
+}
 }

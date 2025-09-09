@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search, Camera, Upload } from "lucide-react"; // Import icons
-
 // Define the User type - updated to use imageUrl from Cloudinary
 type UserData = {
   id: number;

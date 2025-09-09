@@ -2,8 +2,6 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Make sure the path to your prisma client is correct
-import { ContentBlock, BlockType } from "@prisma/client"; // Import types for safety
-
 /**
  * A helper function to generate initials from a name.
  */

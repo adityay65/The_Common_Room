@@ -114,10 +114,10 @@ export default function MyBlogPage() {
         ) : (
           <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg bg-white">
             <p className="text-xl font-semibold text-gray-600">
-              You haven't created any posts yet.
+              You haven&apos;t created any posts yet.
             </p>
             <p className="text-gray-500 mt-2">
-              Click "Create New Post" to share your thoughts!
+              Click &quot;Create New Post&quot; to share your thoughts!
             </p>
           </div>
         )}
