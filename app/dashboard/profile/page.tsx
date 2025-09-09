@@ -451,7 +451,7 @@ export default function ProfilePage() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-black">
                     Current Password
                   </label>
                   <input
@@ -463,7 +463,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-black">
                     New Password
                   </label>
                   <input
@@ -475,7 +475,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-black">
                     Confirm New Password
                   </label>
                   <input
@@ -506,15 +506,7 @@ export default function ProfilePage() {
             </form>
           </div>
         </div>
-
-
-
       )}
-
     </>
-    
   );
-
-  
 }
-

@@ -1,8 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 
-
-
 // ✅ UPDATED the Post type to match the data from getPosts
 type Post = {
   id: number;
@@ -12,7 +10,6 @@ type Post = {
   previewContent: string; // Use the new preview field
   coverImageUrl: string | null; // Use the correct image field
   createdAt: Date;
-
 };
 
 // A small helper function to format the date in a more readable way.
@@ -24,12 +21,13 @@ const formatDate = (date: string): string => {
   });
 };
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post }: { post: Post }) {
   // Use a placeholder if the cover image is missing.
   const coverImage =
-    post.coverImageUrl || "https://placehold.co/600x400/E2E8F0/475569?text=Post";
+    post.coverImageUrl ||
+    "https://placehold.co/600x400/E2E8F0/475569?text=Post";
 
-  const authorName = post.author.name || "Anonymous";
+  const authorName = post.author || "Anonymous";
 
   // Check if the authorImage is a valid URL before using it
   const isAuthorUrl = post.authorImage && post.authorImage.startsWith("http");
@@ -74,12 +72,11 @@ export default function PostCard({ post }: PostCardProps) {
               {/* Use the isAuthorUrl check to conditionally render the Image or the initials */}
               {isAuthorUrl ? (
                 <Image
-                  src={post.authorImage!}
+                  src={post.authorImage}
                   alt={authorName}
                   fill
                   sizes="40px"
                   className="rounded-full object-cover"
-
                 />
               ) : (
                 <div className="h-full w-full bg-slate-700 text-white flex items-center justify-center rounded-full font-semibold text-sm">
@@ -87,17 +84,13 @@ export default function PostCard({ post }: PostCardProps) {
                   {post.authorImage}
                 </div>
               )}
-
-
-              <span className="text-gray-800 font-semibold">{post.author}</span>
-
             </div>
             <div>
               <p className="font-semibold text-sm text-slate-700">
                 {authorName}
               </p>
               <p className="text-xs text-slate-500">
-                {formatDate(post.createdAt)}
+                {new Date(post.createdAt).toLocaleDateString()}
               </p>
             </div>
           </footer>

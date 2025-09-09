@@ -1,9 +1,7 @@
-
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
 
 // Import the Client Components (These are assumed to exist and are not changed)
 import NavbarClient from "@/Components/NavbarClient";
@@ -20,7 +18,6 @@ function getInitials(name: string = ""): string {
 }
 
 // --- Data Fetching Functions (Server-side, unchanged) ---
-
 
 async function getUserData() {
   const cookieStore = cookies();
@@ -46,7 +43,7 @@ async function getUserData() {
   }
 }
 
-[user, posts] = await Promise.all([getUserData(), getPosts()]);
+// [user, posts] = await Promise.all([getUserData(), getPosts()]);
 
 async function getPosts(search: string | null) {
   const apiUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -68,7 +65,6 @@ export default async function DashboardPage({
   // ✅ Await searchParams
   const { search } = await searchParams;
 
-
   // Fetch user and post data in parallel
   const [user, posts] = await Promise.all([
     getUserData(),
@@ -78,11 +74,10 @@ export default async function DashboardPage({
     redirect("/signin");
   }
   return (
-
     // --- Edit: Added flex flex-col for sticky footer ---
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col">
       <NavbarClient user={user} />
-
+      <SearchCleanup />
       {/* --- Edit: Added flex-grow to make main content fill space --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex-grow w-full">
         {/* --- UI Refresh: New header section with a personalized welcome and a clear "Create Post" CTA --- */}
