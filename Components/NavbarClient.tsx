@@ -1,14 +1,16 @@
+
 "use client"; // This directive marks the file as a Client Component
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { Search, Camera, Upload } from "lucide-react"; // Import icons
+import { useRouter } from "next/navigation"; // ADDED: For navigation in Next.js
+import { Search, Camera, Upload } from "lucide-react";
 
-// Define the User type - updated to use imageUrl from Cloudinary
+
 type UserData = {
   id: number;
   name: string | null;
   email: string | null;
-  imageUrl?: string | null; // This will be the Cloudinary URL
+  imageUrl?: string | null;
 };
 
 // Helper function for initials
@@ -26,7 +28,13 @@ export default function NavbarClient({ user }: { user: UserData }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- Unchanged Logic ---
+
+  // --- ADDED FOR SEARCH ---
+  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+  // --- END OF ADDITIONS ---
+
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -46,9 +54,11 @@ export default function NavbarClient({ user }: { user: UserData }) {
 
   const userInitials = getInitials(user.name ?? undefined);
 
+
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    // ... your existing code ...
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -61,21 +71,16 @@ export default function NavbarClient({ user }: { user: UserData }) {
       alert("File size must be less than 5MB");
       return;
     }
-
     setIsUploading(true);
-
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("userId", user.id.toString());
-
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
-
       if (result.success) {
         setCurrentImageUrl(result.imageUrl);
       } else {
@@ -98,7 +103,17 @@ export default function NavbarClient({ user }: { user: UserData }) {
   // --- End of Unchanged Logic ---
 
 
-  // Profile Image Component (Styling inside is unchanged)
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Prevent page reload
+    if (searchTerm.trim()) {
+      router.push(`/dashboard?search=${searchTerm}`);
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
+
   const ProfileImage = ({
     size = "w-10 h-10",
     clickable = false,
@@ -106,6 +121,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
     size?: string;
     clickable?: boolean;
   }) => {
+    // ... your existing code ...
     const imageContent = currentImageUrl ? (
       <img
         src={currentImageUrl}
@@ -117,7 +133,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
         {userInitials}
       </div>
     );
-
     if (clickable) {
       return (
         <button
@@ -130,8 +145,10 @@ export default function NavbarClient({ user }: { user: UserData }) {
           }`}
         >
           {imageContent}
+
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 flex items-center justify-center transition-all duration-200 rounded-full">
             <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
           </div>
           {isUploading && (
             <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-full">
@@ -141,7 +158,6 @@ export default function NavbarClient({ user }: { user: UserData }) {
         </button>
       );
     }
-
     return (
       <div className={`${size} rounded-full overflow-hidden`}>
         {imageContent}
@@ -152,6 +168,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
 
   return (
     <>
+
       <input
         ref={fileInputRef}
         type="file"
@@ -159,6 +176,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
         onChange={handleImageUpload}
         className="hidden"
       />
+
 
       {/* --- UI Refresh: Main header with consistent border and background --- */}
       <header className="bg-white/95 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-30">
@@ -197,15 +215,23 @@ export default function NavbarClient({ user }: { user: UserData }) {
             {/* --- UI Refresh: Grouping search and profile together --- */}
             <div className="flex items-center gap-x-4">
               <div className="hidden md:block relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-5 h-5 text-slate-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full max-w-xs py-2 pl-10 pr-4 text-slate-700 bg-slate-100 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all"
-                />
+                  <form
+              onSubmit={handleSearchSubmit}
+              className="hidden md:block relative flex-1 max-w-md mx-4"
+            >
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="w-5 h-5 text-gray-400" />
               </div>
+              <input
+                type="text"
+                placeholder="Search Title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-100 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              />
+            </form>
+              </div>
+
 
               {/* --- Profile Dropdown --- */}
               <div className="relative" ref={dropdownRef}>
@@ -213,6 +239,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
                   onClick={() => setDropdownOpen(!isDropdownOpen)}
                   className="w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 overflow-hidden"
                 >
+
                   <ProfileImage />
                 </button>
 
@@ -243,7 +270,7 @@ export default function NavbarClient({ user }: { user: UserData }) {
                         </a>
                     </div>
                     <div className="border-t border-slate-200">
-                      <a
+         <a
                         href="/api/auth/signout"
                         className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50"
                       >

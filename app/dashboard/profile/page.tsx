@@ -58,7 +58,7 @@ const ProfileImage = ({
 export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
+  const [, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { notify } = useNotification();

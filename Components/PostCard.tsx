@@ -1,19 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 
-// Define the type for the 'post' prop that this component receives.
-type PostCardProps = {
-  post: {
-    id: number;
-    title: string;
-    createdAt: string; // 👈 changed from Date to string (because it’s serialized from DB)
-    coverImageUrl: string | null;
-    previewContent: string;
-    author: {
-      name: string | null;
-    };
-    authorImage: string | null;
-  };
+
+
+// ✅ UPDATED the Post type to match the data from getPosts
+type Post = {
+  id: number;
+  title: string;
+  author: string;
+  authorImage: string; // This will now be either a URL or initials
+  previewContent: string; // Use the new preview field
+  coverImageUrl: string | null; // Use the correct image field
+  createdAt: Date;
+
 };
 
 // A small helper function to format the date in a more readable way.
@@ -61,6 +60,12 @@ export default function PostCard({ post }: PostCardProps) {
           {/* Post Preview Text */}
           <p className="mt-3 text-slate-600 text-sm leading-relaxed flex-grow">
             {post.previewContent}
+            <Link
+              href={`/posts/${post.id}`}
+              className="text-blue-500 font-semibold ml-1 transition-transform duration-200 hover:scale-105 hover:underline hover:underline-offset-2 hover:decoration-blue-500"
+            >
+              Read more
+            </Link>
           </p>
 
           {/* Author and Date Footer */}
@@ -74,6 +79,7 @@ export default function PostCard({ post }: PostCardProps) {
                   fill
                   sizes="40px"
                   className="rounded-full object-cover"
+
                 />
               ) : (
                 <div className="h-full w-full bg-slate-700 text-white flex items-center justify-center rounded-full font-semibold text-sm">
@@ -81,6 +87,10 @@ export default function PostCard({ post }: PostCardProps) {
                   {post.authorImage}
                 </div>
               )}
+
+
+              <span className="text-gray-800 font-semibold">{post.author}</span>
+
             </div>
             <div>
               <p className="font-semibold text-sm text-slate-700">

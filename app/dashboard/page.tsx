@@ -1,12 +1,15 @@
-import { cookies } from "next/headers";
+
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
 
 // Import the Client Components (These are assumed to exist and are not changed)
 import NavbarClient from "@/Components/NavbarClient";
 import PostCard from "@/Components/PostCard";
 import Footer from "@/Components/footer";
+import SearchCleanup from "@/Components/SearchCleanUp";
 
 // Helper function for initials (no changes needed here)
 function getInitials(name: string = ""): string {
@@ -18,6 +21,7 @@ function getInitials(name: string = ""): string {
 
 // --- Data Fetching Functions (Server-side, unchanged) ---
 
+
 async function getUserData() {
   const cookieStore = cookies();
   const token = (await cookieStore).get("token")?.value;
@@ -26,6 +30,7 @@ async function getUserData() {
   try {
     const decoded = jwt.verify(
       token,
+
       process.env.JWT_SECRET || "secretkey123"
     ) as { id: number };
 
@@ -41,61 +46,39 @@ async function getUserData() {
   }
 }
 
-async function getPosts() {
-  const postsFromDb = await prisma.post.findMany({
-    where: { published: true },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      createdAt: true,
-      coverImageUrl: true,
-      author: {
-        select: {
-          name: true,
-          imageUrl: true,
-        },
-      },
-      blocks: {
-        where: { type: "PARAGRAPH" },
-        orderBy: { order: "asc" },
-        take: 1,
-      },
-    },
-  });
+[user, posts] = await Promise.all([getUserData(), getPosts()]);
 
-  return postsFromDb.map((post) => {
-    const firstParagraph = post.blocks[0]?.data as { text?: string };
-    const previewContent =
-      firstParagraph?.text?.substring(0, 100) +
-        (firstParagraph?.text && firstParagraph.text.length > 100
-          ? "..."
-          : "") || "";
+async function getPosts(search: string | null) {
+  const apiUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const url = search
+    ? `${apiUrl}/api/posts?search=${encodeURIComponent(search)}`
+    : `${apiUrl}/api/posts`;
 
-    return {
-      id: post.id,
-      title: post.title,
-      createdAt: post.createdAt,
-      coverImageUrl: post.coverImageUrl,
-      previewContent: previewContent,
-      author: {
-        name: post.author.name,
-      },
-      authorImage: post.author.imageUrl || getInitials(post.author.name ?? ""),
-    };
-  });
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return [];
+  return res.json();
 }
 
-// --- Page Component (with UI Refresh) ---
-export default async function DashboardPage() {
-  // Fetch user and post data in parallel (unchanged)
-  const [user, posts] = await Promise.all([getUserData(), getPosts()]);
+// --- Page Component ---
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>; // ✅ mark as Promise
+}) {
+  // ✅ Await searchParams
+  const { search } = await searchParams;
 
+
+  // Fetch user and post data in parallel
+  const [user, posts] = await Promise.all([
+    getUserData(),
+    getPosts(search || ""), // ✅ pass search term to API fetch
+  ]);
   if (!user) {
     redirect("/signin");
   }
-
   return (
+
     // --- Edit: Added flex flex-col for sticky footer ---
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col">
       <NavbarClient user={user} />
@@ -118,6 +101,7 @@ export default async function DashboardPage() {
                 to give those memories a home.
               </p>
             </div>
+
             <a
               href="/write"
               className="flex-shrink-0 inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-slate-50 shadow-sm transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-950"
