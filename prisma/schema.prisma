@@ -10,29 +10,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Enum for the different types of content blocks a post can have.
+/// This makes your content structured and easy to extend later.
+enum BlockType {
+  HEADING_ONE
+  HEADING_TWO
+  PARAGRAPH
+  IMAGE
+  CODE
+  LIST_ITEM
+}
+
 // User model for authentication
-  model User {
-    id        Int      @id @default(autoincrement())
-    email     String   @unique
-    name      String
-    password  String
-    imageUrl  String?
-    bio       String?
-    hobbies   String?
-    posts     Post[] // 👈 Add this line (one-to-many relation with Post)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-  }
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  imageUrl  String?
+  bio       String?
+  hobbies   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  posts Post[] // A user can write many posts.
+}
 
 // Post model for blog articles
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String   @db.Text
-  imageUrl  String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  title         String
+  coverImageUrl String? // Renamed for clarity, used for previews/thumbnails.
+  published     Boolean  @default(false)
+  authorId      Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  author User         @relation(fields: [authorId], references: [id])
+  blocks ContentBlock[] // A post is made of an ordered list of content blocks.
 }
+
+// Represents a single block of content within a Post (e.g., a paragraph or an image).
+model ContentBlock {
+  id     Int       @id @default(autoincrement())
+  order  Int // The position of the block in the post (1, 2, 3...).
+  type   BlockType // What kind of content this is.
+  data   Json // The actual content (e.g., { "text": "..." } or { "url": "..." }).
+  postId Int
+
+  // Relation: Each block belongs to one Post.
+  // onDelete: Cascade means if a Post is deleted, all its ContentBlocks are also deleted.
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // This ensures that the 'order' of blocks is unique for each post.
+  @@unique([postId, order])
+}
+
