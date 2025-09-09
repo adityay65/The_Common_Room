@@ -64,7 +64,7 @@ function ContentBlock({ block }: { block: { type: BlockType; data: any } }) {
       );
     case BlockType.IMAGE:
       return (
-        <figure className="my-8 flex justify-center">
+        <figure className="my-8 flex flex-col items-center">
           <img
             src={data.url}
             alt={data.alt || "Blog post image"}

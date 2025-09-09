@@ -87,7 +87,7 @@ export default function MyBlogPage() {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">My Blog Posts</h2>
           <Link
-            href="/create-post"
+            href="/write"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300"
           >
             <PlusCircle size={20} className="mr-2" />
