@@ -98,7 +98,7 @@ export default async function SinglePostPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = await params; // ⬅️ FIXED
+  const { id } = params; // ⬅️ FIXED
   const user = await getUserData();
   if (!user) redirect("/signin");
 
