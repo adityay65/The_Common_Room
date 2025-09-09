@@ -8,7 +8,7 @@ import Link from "next/link";
 type Post = {
   id: number;
   title: string;
-  author: { name: string | null };
+  author: string;
   authorImage: string; // This will now be either a URL or initials
   previewContent: string; // Use the new preview field
   coverImageUrl: string | null; // Use the correct image field
@@ -43,6 +43,12 @@ export default function PostCard({ post }: { post: Post }) {
           {/* ✅ Use the previewContent field */}
           <p className="text-gray-600 text-base mb-4 min-h-[4.5rem] overflow-hidden">
             {post.previewContent}
+            <Link
+              href={`/posts/${post.id}`}
+              className="text-blue-500 font-semibold ml-1 transition-transform duration-200 hover:scale-105 hover:underline hover:underline-offset-2 hover:decoration-blue-500"
+            >
+              Read more
+            </Link>
           </p>
 
           <div className="border-t border-gray-100 pt-4 mt-auto">
@@ -51,7 +57,7 @@ export default function PostCard({ post }: { post: Post }) {
               {isAuthorImageURL ? (
                 <img
                   src={post.authorImage}
-                  alt={post.author.name ?? "Author"}
+                  alt={post.author ?? "Author"}
                   className="w-10 h-10 rounded-full mr-3 object-cover bg-gray-200"
                 />
               ) : (
@@ -59,9 +65,7 @@ export default function PostCard({ post }: { post: Post }) {
                   {post.authorImage}
                 </div>
               )}
-              <span className="text-gray-800 font-semibold">
-                {post.author.name}
-              </span>
+              <span className="text-gray-800 font-semibold">{post.author}</span>
             </div>
           </div>
         </div>

@@ -1,7 +1,9 @@
 // app/api/posts/route.ts
 
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Make sure the path to your prisma client is correct
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client"; // --- ADDED: Import types for Prisma queries
+
 /**
  * A helper function to generate initials from a name.
  */
@@ -12,40 +14,65 @@ function getInitials(name: string): string {
   return initials.slice(0, 2).toUpperCase();
 }
 
-export async function GET() {
+// --- MODIFIED: Added 'request' parameter to access the URL
+export async function GET(request: Request) {
   try {
-    // 1. Fetch posts, including author and content blocks for preview generation.
+    // --- ADDED: Extract search query from URL ---
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get("search");
+
+    // --- ADDED: Create a dynamic 'where' clause for the Prisma query ---
+    const whereClause: Prisma.PostWhereInput = {
+      published: true, // Always filter for published posts
+    };
+
+    if (query) {
+      // If a search query is present, add conditions to search title and author name
+      whereClause.OR = [
+        {
+          title: {
+            contains: query,
+          },
+        },
+        {
+          author: {
+            name: {
+              contains: query,
+            },
+          },
+        },
+      ];
+    }
+    // --- END OF ADDITIONS ---
+
+    // 1. Fetch posts using the dynamic where clause.
     const posts = await prisma.post.findMany({
-      where: {
-        published: true, // Optional: You might want to only show published posts
-      },
+      // --- MODIFIED: Use the dynamic whereClause ---
+      where: whereClause,
       orderBy: {
-        createdAt: "desc", // Get the newest posts first
+        createdAt: "desc",
       },
       include: {
-        author: true, // Includes the related User object
+        author: true,
         blocks: {
-          // Includes related ContentBlock objects
           where: {
-            // Optimization: Only fetch the first paragraph block to create a preview
             type: "PARAGRAPH",
           },
           orderBy: {
             order: "asc",
           },
-          take: 1, // We only need the very first one
+          take: 1,
         },
       },
     });
 
     // 2. Map the data to the format your frontend components expect.
+    //    (This part remains unchanged)
     const formattedPosts = posts.map((post) => {
-      // Find the first paragraph block to use as a preview.
       const firstParagraphBlock = post.blocks[0];
       let previewContent = "";
 
       if (firstParagraphBlock && firstParagraphBlock.type === "PARAGRAPH") {
-        // Safely access the text content from the JSON data field.
         const data = firstParagraphBlock.data as { text: string };
         previewContent =
           data.text.substring(0, 150) + (data.text.length > 150 ? "..." : "");
@@ -54,21 +81,17 @@ export async function GET() {
       return {
         id: post.id,
         title: post.title,
-        // ✅ NEW: Generated from the first paragraph block.
         previewContent: previewContent,
-        // ✅ UPDATED: Correct field name from schema for the post's cover image.
         coverImageUrl: post.coverImageUrl,
         createdAt: post.createdAt.toISOString(),
         author: post.author.name,
-        // ✅ UPDATED: Prioritize the author's saved image URL, fallback to initials.
-        authorImage: post.author.imageUrl || getInitials(post.author.name),
+        authorImage: post.author.imageUrl || getInitials(post.author.name!),
       };
     });
 
     return NextResponse.json(formattedPosts);
   } catch (error) {
     console.error("Failed to fetch posts:", error);
-    // Return a 500 Internal Server Error response
     return NextResponse.json(
       { error: "Unable to fetch posts." },
       { status: 500 }
