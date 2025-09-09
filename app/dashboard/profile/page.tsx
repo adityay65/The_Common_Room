@@ -1,16 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import {
-  Lock,
-  Save,
-  User as UserIcon,
-  BookOpen,
-  Smile,
-} from "lucide-react";
+import { Lock, Save, User as UserIcon, BookOpen, Smile } from "lucide-react";
 import { useNotification } from "@/context/NotificationContext";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
-
+import Footer from "@/Components/footer";
+import NavbarClient from "@/Components/NavbarClient";
 // User Profile type
 type UserProfile = {
   id: number;
@@ -270,6 +265,7 @@ export default function ProfilePage() {
       />
 
       <div className="bg-gray-50 min-h-screen">
+        <NavbarClient user={user} />
         <main className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-8">
             Edit Profile
@@ -420,6 +416,7 @@ export default function ProfilePage() {
             </form>
           </div>
         </main>
+        <Footer></Footer>
       </div>
 
       {/* Change Password Modal */}
@@ -509,7 +506,15 @@ export default function ProfilePage() {
             </form>
           </div>
         </div>
+
+
+
       )}
+
     </>
+    
   );
+
+  
 }
+

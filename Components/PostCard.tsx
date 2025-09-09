@@ -1,71 +1,98 @@
-// Components/PostCard.tsx
-
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 
-// ✅ UPDATED the Post type to match the data from getPosts
-type Post = {
-  id: number;
-  title: string;
-  author: { name: string | null };
-  authorImage: string; // This will now be either a URL or initials
-  previewContent: string; // Use the new preview field
-  coverImageUrl: string | null; // Use the correct image field
-  createdAt: Date;
+// Define the type for the 'post' prop that this component receives.
+type PostCardProps = {
+  post: {
+    id: number;
+    title: string;
+    createdAt: string; // 👈 changed from Date to string (because it’s serialized from DB)
+    coverImageUrl: string | null;
+    previewContent: string;
+    author: {
+      name: string | null;
+    };
+    authorImage: string | null;
+  };
 };
 
-export default function PostCard({ post }: { post: Post }) {
-  // ✅ Use the correct field and a more descriptive placeholder
-  const postImageUrl =
-    post.coverImageUrl ||
-    "https://placehold.co/600x400/E2E8F0/4A5568?text=Blog";
+// A small helper function to format the date in a more readable way.
+const formatDate = (date: string): string => {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
-  // Helper to check if the authorImage is a URL or initials
-  const isAuthorImageURL = post.authorImage.startsWith("http");
+export default function PostCard({ post }: PostCardProps) {
+  // Use a placeholder if the cover image is missing.
+  const coverImage =
+    post.coverImageUrl || "https://placehold.co/600x400/E2E8F0/475569?text=Post";
+
+  const authorName = post.author.name || "Anonymous";
+
+  // Check if the authorImage is a valid URL before using it
+  const isAuthorUrl = post.authorImage && post.authorImage.startsWith("http");
 
   return (
-    <Link href={`/posts/${post.id}`} className="block group">
-      <div className="bg-white rounded-xl shadow-md overflow-hidden group-hover:shadow-xl transition-shadow duration-300 transform group-hover:-translate-y-1 h-full flex flex-col">
-        <img
-          className="h-48 w-full object-cover"
-          src={postImageUrl}
-          alt={`Cover image for ${post.title}`}
-        />
+    // The entire card is a link to the full post page.
+    <Link href={`/posts/${post.id}`} className="group block">
+      <article className="h-full bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
+        {/* Post Cover Image */}
+        <div className="relative aspect-video overflow-hidden rounded-t-xl bg-slate-200">
+          <Image
+            src={coverImage}
+            alt={`Cover image for ${post.title}`}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            unoptimized={true}
+          />
+        </div>
+
+        {/* Post Content */}
         <div className="p-6 flex flex-col flex-grow">
-          <p className="text-sm text-gray-500 mb-2">
-            {new Date(post.createdAt).toLocaleDateString()}
-          </p>
-          <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
+          {/* Post Title */}
+          <h3 className="text-xl font-bold font-serif text-slate-800 group-hover:text-slate-950 transition-colors">
             {post.title}
           </h3>
 
-          {/* ✅ Use the previewContent field */}
-          <p className="text-gray-600 text-base mb-4 min-h-[4.5rem] overflow-hidden">
+          {/* Post Preview Text */}
+          <p className="mt-3 text-slate-600 text-sm leading-relaxed flex-grow">
             {post.previewContent}
           </p>
 
-          <div className="border-t border-gray-100 pt-4 mt-auto">
-            <div className="flex items-center">
-              {/* ✅ Conditionally render image or initials */}
-              {isAuthorImageURL ? (
-                <img
-                  src={post.authorImage}
-                  alt={post.author.name ?? "Author"}
-                  className="w-10 h-10 rounded-full mr-3 object-cover bg-gray-200"
+          {/* Author and Date Footer */}
+          <footer className="mt-6 pt-4 border-t border-slate-200/80 flex items-center gap-x-3">
+            <div className="relative h-10 w-10 flex-shrink-0">
+              {/* Use the isAuthorUrl check to conditionally render the Image or the initials */}
+              {isAuthorUrl ? (
+                <Image
+                  src={post.authorImage!}
+                  alt={authorName}
+                  fill
+                  sizes="40px"
+                  className="rounded-full object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full mr-3 bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
+                <div className="h-full w-full bg-slate-700 text-white flex items-center justify-center rounded-full font-semibold text-sm">
+                  {/* If not a URL, authorImage contains the initials */}
                   {post.authorImage}
                 </div>
               )}
-              <span className="text-gray-800 font-semibold">
-                {post.author.name}
-              </span>
             </div>
-          </div>
+            <div>
+              <p className="font-semibold text-sm text-slate-700">
+                {authorName}
+              </p>
+              <p className="text-xs text-slate-500">
+                {formatDate(post.createdAt)}
+              </p>
+            </div>
+          </footer>
         </div>
-      </div>
+      </article>
     </Link>
   );
 }
