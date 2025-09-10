@@ -12,15 +12,6 @@ type Post = {
   createdAt: Date;
 };
 
-// A small helper function to format the date in a more readable way.
-const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
-
 export default function PostCard({ post }: { post: Post }) {
   // Use a placeholder if the cover image is missing.
   const coverImage =
