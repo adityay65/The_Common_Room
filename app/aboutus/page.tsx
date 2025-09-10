@@ -2,22 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { useForm, ValidationError } from "@formspree/react";
+import NavbarClient from "@/Components/NavbarClient";
 
 // --- Data Arrays --- //
 const teamMembers = [
   {
     name: "Dhruv Agarwal",
-    role: "Founder & CEO",
     imageUrl: "/images/Dhruv.jpeg",
   },
   {
     name: "Aditi Dabra",
-    role: "Lead Developer",
     imageUrl: "/images/Aditi.jpeg",
   },
   {
     name: "Aditya Yadav",
-    role: "Community Manager",
     imageUrl: "/images/Aditya.jpeg",
   },
 ];
@@ -37,7 +35,7 @@ const CommonRoomSection = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3000);
+    }, 3000); // Image changes every 3 seconds
     return () => clearInterval(intervalId);
   }, [images.length]);
 
@@ -53,8 +51,8 @@ const CommonRoomSection = () => {
             Life at IIT Ropar extends far beyond the lecture halls and
             libraries. It&apos;s in the spontaneous journeys, the shared
             discoveries, and the stories that shape us. We created The Common
-            Room as the digital heart of our campus&mdash;a central space to
-            bring these invaluable experiences together.
+            Room as the digital heart of our campus—a central space to bring
+            these invaluable experiences together.
           </p>
           <blockquote className="border-l-4 border-gray-300 pl-4 italic my-6">
             &quot;We realized the most transformative learning often happens on
@@ -68,17 +66,25 @@ const CommonRoomSection = () => {
           </p>
           <p className="mt-6 font-serif text-2xl">Team, The Common Room</p>
         </div>
-        <div>
-          <img
-            src={images[currentIndex]}
-            alt="A rotating collection of images from student trips"
-            className="rounded-lg shadow-xl w-full transition-opacity duration-1000 ease-in-out"
-            key={currentIndex}
-            onError={(e) => {
-              e.currentTarget.src =
-                "https://placehold.co/600x700/E2E8F0/4A5568?text=Image+Not+Found";
-            }}
-          />
+
+        {/* --- CORRECTED IMAGE CONTAINER --- */}
+        <div className="relative w-full aspect-[1/1] rounded-lg shadow-xl">
+          {images.map((src, index) => (
+            <img
+              key={src} // Use the image source as the key
+              src={src}
+              alt="A rotating collection of images from student trips"
+              className={`
+                absolute top-0 left-0 w-full h-full object-cover rounded-lg
+                transition-opacity duration-1000 ease-in-out
+                ${index === currentIndex ? "opacity-100" : "opacity-0"}
+              `}
+              onError={(e) => {
+                e.currentTarget.src =
+                  "https://placehold.co/600x700/E2E8F0/4A5568?text=Image+Not+Found";
+              }}
+            />
+          ))}
         </div>
       </div>
     </section>
