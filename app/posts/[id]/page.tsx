@@ -4,7 +4,11 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import NavbarClient from "@/Components/NavbarClient";
 import { BlockType } from "@prisma/client";
-
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
 async function getPostById(id: string) {
   const postId = parseInt(id, 10);
   if (isNaN(postId)) return null;
@@ -81,14 +85,7 @@ function ContentBlock({
   }
 }
 
-export default async function SinglePostPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-
-  const { id } = params; // ⬅️ FIXED
-
+export default async function SinglePostPage({ params }: PageProps) {
   const user = await getUserData();
   if (!user) redirect("/signin");
 

@@ -9,14 +9,6 @@ import PostCard from "@/Components/PostCard";
 import Footer from "@/Components/footer";
 import SearchCleanup from "@/Components/SearchCleanUp";
 
-// Helper function for initials (no changes needed here)
-function getInitials(name: string = ""): string {
-  if (!name) return "";
-  const names = name.split(" ");
-  const initials = names.map((n) => n[0]).join("");
-  return initials.slice(0, 2).toUpperCase();
-}
-
 // --- Data Fetching Functions (Server-side, unchanged) ---
 
 async function getUserData() {
